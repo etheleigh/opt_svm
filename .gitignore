@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual Environments
+.env/
+venv/
+.venv/
+
+# PyCharm
+.idea/
+
+# Environment variables
+.env
+
+# Others
+.DS_Store
+.pytest_cache/
+
+# Data folder
+data/
+
