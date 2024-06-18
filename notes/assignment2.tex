@@ -1,0 +1,96 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage{kerkis}
+\usepackage[T1]{fontenc}
+\usepackage{alphalph}
+\usepackage[utf8x]{inputenc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18, width=10cm}
+
+\usepackage{ucs}
+\usepackage[english]{babel}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{color}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{accents}
+\usepackage{xfrac}
+\geometry{margin=2cm}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepgfplotslibrary{fillbetween}
+\captionsetup[table]{position=bottom} 
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,      
+	urlcolor=blue}
+
+
+\pagestyle{fancy}
+\title{2nd Homework Assignment \\ \huge{Project on Support Vector Machines}}
+\author{Vasileios Papageorgiou}
+\date{\today}
+\fancyhead[L]{Optimization Techniques}
+\fancyhead[R]{MSc Program in Data Science (PT)}
+
+\newcounter{para}
+\newcommand\mypara{\par\refstepcounter{para}\textbf{\thepara.}\space}
+\setlength\parindent{0pt}
+
+\renewcommand{\thesubsection}{(\alphalph{\value{subsection}})}
+
+\begin{document}
+	\maketitle
+	\thispagestyle{fancy}
+	
+	
+
+\section*{Theoritical Background}
+
+We have the following non linear program:
+
+\begin{equation}\label{eq:3}
+	\begin{aligned}
+		\min \{ F(x) = \frac{c^T x}{d^T x} : A x = b; \, x \geq 0 \}
+	\end{aligned}
+\end{equation}
+
+
+
+\begin{algorithm}
+	\caption{Bisection Method for Optimal $\lambda$}
+	\begin{algorithmic}[1]
+		\State \textbf{Given:} interval $[L, U]$ that contains optimal $\lambda$
+		\Repeat
+		\State $\lambda := \frac{u + l}{2}$
+		\State Solve the feasibility problem:
+		\State $\quad c^T x \leq \lambda d^T x $
+		\State $\quad d^T x > 0$
+		\State $\quad Ax = b$
+		\State Adjust the bounds
+		\If{feasible}
+		\State $U := \lambda$
+		\Else
+		\State $L := \lambda$
+		\EndIf
+		\Until{$U - L \leq \epsilon$}
+	\end{algorithmic}
+\end{algorithm}
+
+\section*{Problem 4}
+ 
+
+\end{document}
