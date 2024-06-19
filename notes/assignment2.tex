@@ -71,26 +71,55 @@ We have the following non linear program:
 
 
 \begin{algorithm}
-	\caption{Bisection Method for Optimal $\lambda$}
+	\caption{Bisection Method for Optimal $\alpha$}
 	\begin{algorithmic}[1]
-		\State \textbf{Given:} interval $[L, U]$ that contains optimal $\lambda$
+		\State \textbf{Given:} interval $[L, U]$ that contains optimal $\alpha$
 		\Repeat
-		\State $\lambda := \frac{u + l}{2}$
+		\State $\alpha := \frac{u + l}{2}$
 		\State Solve the feasibility problem:
-		\State $\quad c^T x \leq \lambda d^T x $
+		\State $\quad c^T x \leq \alpha d^T x $
 		\State $\quad d^T x > 0$
 		\State $\quad Ax = b$
 		\State Adjust the bounds
 		\If{feasible}
-		\State $U := \lambda$
+		\State $U := \alpha$
 		\Else
-		\State $L := \lambda$
+		\State $L := \alpha$
 		\EndIf
 		\Until{$U - L \leq \epsilon$}
 	\end{algorithmic}
 \end{algorithm}
 
 \section*{Problem 4}
+
+\subsection{Updating the Error Cache}
+
+When a Lagrange multiplier is non-bound after being optimized, its cached error is zero. The stored errors of other
+non-bound multipliers not involved in joint optimization are updated as follows.
+
+\begin{equation}
+	E_k^{\text{new}} = E_k^{\text{old}} + u_k^{\text{new}} - u_k^{\text{old}} \tag{3.36}
+\end{equation}
+
+\begin{equation}
+	E_k^{\text{new}} = E_k^{\text{old}} + u_k^{\text{new}} - u_k^{\text{old}} \tag{3.37}
+\end{equation}
+
+For any \( k \)-th example in the training set, the difference between its new SVM output value and its old SVM output
+value, \( u_k^{\text{new}} - u_k^{\text{old}} \), is due to the change in \( \alpha_1, \alpha_2 \) and the change in the threshold \( b \).
+
+\begin{equation}
+	u_k^{\text{new}} - u_k^{\text{old}} = y_1 \alpha_1^{\text{new}} k_{1k} + y_2 \alpha_2^{\text{new}} k_{2k} - b^{\text{new}} 
+	- \left( y_1 \alpha_1^{\text{old}} k_{1k} + y_2 \alpha_2^{\text{old}} k_{2k} - b^{\text{old}} \right) \tag{3.38}
+\end{equation}
+
+Substituting equation (3.37) into equation (3.36), we have
+
+\begin{equation}
+	E_k^{\text{new}} = E_k^{\text{old}} + y_1 \left( \alpha_1^{\text{new}} - \alpha_1^{\text{old}} \right) k_{1k} 
+	+ y_2 \left( \alpha_2^{\text{new}} - \alpha_2^{\text{old}} \right) k_{2k} - (b^{\text{new}} - b^{\text{old}}) \tag{3.39}
+\end{equation}
+
  
 \begin{thebibliography}{1}
 	
@@ -99,6 +128,11 @@ We have the following non linear program:
 	\newblock Sequential Minimal Optimization: A Fast Algorithm for Training Support Vector Machines.
 	\newblock Technical Report MSR-TR-98-14, Microsoft, April 1998.
 	\newblock \url{https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/}.
+	
+	\bibitem{mak2000smo}
+	Ginny Mak.
+	\newblock The Implementation of Support Vector Machines Using the Sequential Minimal Optimization Algorithm.
+	\newblock Master's thesis, McGill University, School of Computer Science, Montreal, Canada, April 2000.
 	
 \end{thebibliography}
 
