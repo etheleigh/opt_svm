@@ -376,140 +376,147 @@ return 1
 
 \subsubsection{\textit{examine\_example} method}
 
-The method starts by checking if an element violates KKT conditions (within a selected tolerance user-defined by parameter \textit{tol}). After that the method uses an two-level hierarchy of heuristics to select candidate pairs.
+The SMO algorithm uses two heuristics for choosing Lagrange multipliers. The outer loop first iterates over the entire training set to find examples violating the KKT conditions. Violating examples are then optimized. 
 
-The fist case applies if there is only a singe non-bound elemente 
+After a full pass, the outer loop focuses on non-bound examples (multipliers neither 0 nor \(C\)), checking and optimizing those that violate the KKT conditions. This process alternates between full passes and non-bound passes until all examples meet the KKT conditions within a tolerance \(\epsilon\), terminating the algorithm.
 
-The SMO algorithm uses two heuristics to choose Lagrange multipliers: one for the first and one for the second. The outer loop first iterates through the entire training set to find examples violating the KKT conditions. These examples are then optimized. After one full pass, the outer loop focuses on non-bound examples (where Lagrange multipliers are neither 0 nor \( C \)), checking and optimizing those that violate the KKT conditions. This process repeats, alternating between full passes over the entire training set and multiple passes over the non-bound examples, until all examples satisfy the KKT conditions within a small tolerance \( tol \). The algorithm terminates when the entire training set meets the KKT conditions.
+The first heuristic prioritizes non-bound examples, which are more likely to violate the KKT conditions. The SMO algorithm iterates over the non-bound subset until it is consistent, then scans the entire data set to check bound examples.
 
+For the second multiplier, SMO maximizes the step size by approximating \(| E1 - E2 |\). It chooses errors to maximize the step size, using a cached error value \(E\) for each non-bound example. If no progress is made, SMO uses a hierarchy of second-choice heuristics, iterating through non-bound examples or the entire set to find a pair of multipliers that allow a positive step size. If still unsuccessful, SMO skips the first example and continues with another.
 
-
-\section{Experimental Setup}
-\label{sec:experiments}
-\begin{itemize}
-	\item Description of the dataset used (gisette dataset).
-	\item Preprocessing steps and train-test split (using 4500-5000 points for training).
-\end{itemize}
-
-\section{Results}
-\label{sec:results}
-\begin{itemize}
-	\item Presentation of the results obtained from the basic implementation.
-	\item Evaluation metrics used for assessing the performance.
-\end{itemize}
-
-\section{Optimization and Fine-Tuning}
-\label{sec:optimization}
-\begin{itemize}
-	\item Strategies for optimizing the choice of the constant \(C\).
-	\item Any other optimizations or improvements made to the algorithm.
-	\item Comparative results before and after optimization.
-\end{itemize}
-
-\section{Discussion}
-\label{sec:discussion}
-\begin{itemize}
-	\item Analysis of the results and their implications.
-	\item Challenges faced during implementation and how they were addressed.
-	\item Limitations of the current implementation and potential future work.
-\end{itemize}
-
-\section{Conclusion}
-\label{sec:conclusion}
-\begin{itemize}
-	\item Summary of the work done.
-	\item Key findings and their significance.
-	\item Final thoughts and potential directions for future research.
-\end{itemize}
-
-\appendix
-\section{Appendix}
-\begin{itemize}
-	\item Additional tables, figures, or code snippets.
-	\item Detailed mathematical derivations if necessary.
-\end{itemize}
-
-
-
-
-\section*{Theoretical Background}
-
-We have the following non linear program:
-
-\begin{equation}\label{eq:3}
-	\begin{aligned}
-		\min \{ F(x) = \frac{c^T x}{d^T x} : A x = b; \, x \geq 0 \}
-	\end{aligned}
-\end{equation}
-
-
-
-\begin{algorithm}
-	\caption{Bisection Method for Optimal $\alpha$}
-	\begin{algorithmic}[1]
-		\State \textbf{Given:} interval $[L, U]$ that contains optimal $\alpha$
-		\Repeat
-		\State $\alpha := \frac{u + l}{2}$
-		\State Solve the feasibility problem:
-		\State $\quad c^T x \leq \alpha d^T x $
-		\State $\quad d^T x > 0$
-		\State $\quad Ax = b$
-		\State Adjust the bounds
-		\If{feasible}
-		\State $U := \alpha$
-		\Else
-		\State $L := \alpha$
-		\EndIf
-		\Until{$U - L \leq \epsilon$}
-	\end{algorithmic}
-\end{algorithm}
+This methodology with the hierarchical heuristics is implemented as follows:
 
 \begin{lstlisting}
-	# Define parameter s
-	s = y1 * y2
+def examine_example(self, i2:int=None):
+
+	y2 = self.y[i2]
+	a2 = self.alphas[i2]
+	E2 = self.get_error(i2)
+	r2 = E2 * y2
+
+	# Check if KKT satisfation error is within tolerance
+	if (r2 < -self.tol and a2 < self.C) or (r2 > self.tol and a2 > 0):
+
+	# Check if multiple non-bound elements and use 2nd heuristic.
+		if np.count_nonzero((0 < self.alphas) & (self.alphas < self.C)) > 1:
 	
-	# Compute L, H via equations (13) and (14) from Platt
-	if y1 != y2:
-	L = max(0, a2 - a1)
-	H = min(self.C, self.C + a2 - a1)
-	else:
-	L = max(0, a2 + a1 - self.C)
-	H = min(self.C, a2 + a1)
+			if E2 > 0:
+				i1 = np.argmin(self.Error_cache)
+			else:
+				i1 = np.argmax(self.Error_cache)
 	
-	if L == H:
+			if self.take_step(i1, i2):
+				return 1 # succesfull pass
+	
+	# Loop over all non-boundary elements, starting at a random point
+	# Get indices where 0 < alpha < self.C
+	i1_array = np.where((0 < self.alphas) & (self.alphas < self.C))[0]
+	
+	# Iterate through all starting at random
+	random_shift = np.random.choice(np.arange(self.m))
+	i1_list = np.roll(i1_array, random_shift)
+	
+	# Loop over all non-boundary elements
+	for i1 in i1_list:
+		if self.take_step(i1, i2):
+			return 1
+	
+	# Loop over ALL elements, starting at a random point
+	i1_list = np.roll(np.arange(self.m), np.random.choice(np.arange(self.m)))
+	for i1 in i1_list:
+		if self.take_step(i1, i2):
+			return 1
+	
 	return 0
+	
+\end{lstlisting}
+	
+\subsubsection{\textit{fit} method}
+This is the main training routine of the program.
+The \textit{fit} method by initializing \textit{iteration\_number} to count iterations, \textit{numbers\_changed} to track changes in Lagrange multipliers at every pass, and \textit{examine\_all} to indicate whether all training examples should be examined or not. The main loop continues as long as there were still changes in the Lagrange multipliers or if all examples should be examined (e.g. in the first iteration. If the iteration count exceeds the maximum allowed, the algorithm terminates to avoid infinite loops. 
+
+The algorithm focuses on examining only the subset of non-boundary examples if possible, because they are less in number and that can speed the computation time. If no changes occur in the \(\alpha\) values of those, the algorithm switches to examining all. This alternation between examining all examples and the subset continues until convergence criteria are met (KKT conditions met for all samples within a tolerance), ensuring efficient optimization of the SVM. The implementations is as follows:\newpage
+
+\begin{lstlisting}
+def fit(self) -> None:
+
+	iteration_number = 0
+	numbers_changed = 0
+	examine_all = True
+	
+	while numbers_changed > 0 or examine_all:
+
+		if iteration_number >= self.max_iter:
+		break
+	
+		numbers_changed = 0
+		if examine_all:	
+			for i in range(self.m):
+				numbers_changed += self.examine_example(i)
+	
+		else: 
+			i_array = np.where((0 < self.alphas) & (self.alphas < self.C))[0]
+			for i in i_array:
+				numbers_changed += self.examine_example(i)
+	
+	if examine_all:
+		examine_all = False
+	if numbers_changed == 0:
+		examine_all = True
+	
+	iteration_number += 1
+	
 \end{lstlisting}
 
-\section*{Problem 4}
 
-\subsection{Updating the Error Cache}
 
-When a Lagrange multiplier is non-bound after being optimized, its cached error is zero. The stored errors of other
-non-bound multipliers not involved in joint optimization are updated as follows.
+\section{Experiments on gisette dataset}
 
-\begin{equation}
-	E_k^{\text{new}} = E_k^{\text{old}} + u_k^{\text{new}} - u_k^{\text{old}} \tag{3.36}
-\end{equation}
+In this section, we will use a well known dataset for training and evaluating the SMO implementation. The dataset of choice is \textbf{gisette}.
 
-\begin{equation}
-	E_k^{\text{new}} = E_k^{\text{old}} + u_k^{\text{new}} - u_k^{\text{old}} \tag{3.37}
-\end{equation}
 
-For any \( k \)-th example in the training set, the difference between its new SVM output value and its old SVM output
-value, \( u_k^{\text{new}} - u_k^{\text{old}} \), is due to the change in \( \alpha_1, \alpha_2 \) and the change in the threshold \( b \).
+\subsection{The Gisette Dataset}
 
-\begin{equation}
-	u_k^{\text{new}} - u_k^{\text{old}} = y_1 \alpha_1^{\text{new}} k_{1k} + y_2 \alpha_2^{\text{new}} k_{2k} - b^{\text{new}} 
-	- \left( y_1 \alpha_1^{\text{old}} k_{1k} + y_2 \alpha_2^{\text{old}} k_{2k} - b^{\text{old}} \right) \tag{3.38}
-\end{equation}
+The Gisette dataset is a well-known benchmark in machine learning, specifically used for feature selection and binary classification tasks. Originally part of the NIPS 2003 feature selection challenge, this dataset consists of handwritten digit images where the objective is to distinguish between the digits '4' and '9'.
 
-Substituting equation (3.37) into equation (3.36), we have
+\subsubsection{Dataset Characteristics}
 
-\begin{equation}
-	E_k^{\text{new}} = E_k^{\text{old}} + y_1 \left( \alpha_1^{\text{new}} - \alpha_1^{\text{old}} \right) k_{1k} 
-	+ y_2 \left( \alpha_2^{\text{new}} - \alpha_2^{\text{old}} \right) k_{2k} - (b^{\text{new}} - b^{\text{old}}) \tag{3.39}
-\end{equation}
+\begin{itemize}
+	\item \textbf{Features:} 5000 features, many of which are redundant or irrelevant (noise), making it an excellent test for feature selection algorithms.
+	\item \textbf{Instances:} 7000 instances in the training set and 1000 instances in the test set.
+	\item \textbf{Classes:} Binary labels representing the digits '4' and '9', which appear very similar when handwritten and pose a difficulty for machine learning algorithms to distinguish them.
+\end{itemize}
 
+The Gisette dataset is frequently utilized to evaluate the performance of various machine learning algorithms, especially those designed for high-dimensional data. Due to its high dimensionality and the presence of irrelevant features, it provides a challenging testbed for these algorithms.
+
+Each line of the dataset is formatted as follows:
+\begin{verbatim}
+	-1 1:-1 2:-1 3:0.913914 4:-1 5:-1 6:0.4530 ...
+\end{verbatim}
+\begin{itemize}
+	\item The first number is the label \( y \) which is either 1 or -1.
+	\item It is followed by 5000 pairs of the form \texttt{integer\_index:float\_value} where the floats represent the feature values \( x \).
+\end{itemize}
+
+All features are scaled, so no further pre-processing is required. The dataset is loaded using the custom-made function \textit{read\_gisette\_data} from the utils.py module.
+
+
+\subsubsection{Optimization and Fine-Tuning}
+
+Even though the \texttt{SVM\_classifier} class has the ability to use different types of kernels, for the gisette dataset a simple linear kernel is enough, as the dataset exhibits strong linear separability. However, we could fine-tune the hyper-parameter \( C \). We use a simple k-fold validation procedure on the training dataset choosing five folds and \( C \) range in \([0.1, 1, 10, 100]\). The scoring criterion can be one of accuracy, precision, F1 score, or recall, selected as needed. This function is implemented by the \texttt{tune\_hyperparameter\_C} function from the \texttt{utils.py} module.
+
+After running the algorithm, using accuracy as the scoring metric, we conclude that \( C=0.1 \) is the best for this dataset with a linear kernel. We then train the model using the whole training dataset and evaluate it using the test dataset. We obtain the following results for the metrics:
+
+\begin{itemize}
+	\item \textbf{Accuracy of SVM on test set:} 0.9670
+	\item \textbf{Recall of SVM on test set:} 0.9640
+	\item \textbf{Precision of SVM on test set:} 0.9698
+	\item \textbf{F1 of SVM on test set:} 0.9669
+\end{itemize}
+
+The custom-made SMO algorithm achieves results similar to those of optimized Python libraries, albeit with slightly slower performance.
+
+\section{Documentation for running the code}
 
  
 \begin{thebibliography}{1}
@@ -518,7 +525,7 @@ Substituting equation (3.37) into equation (3.36), we have
 	John Platt.
 	\newblock Sequential Minimal Optimization: A Fast Algorithm for Training Support Vector Machines.
 	\newblock Technical Report MSR-TR-98-14, Microsoft, April 1998.
-	\newblock \url{https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/}.
+	\newblock \href{https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/}{link}
 	
 	\bibitem{mak2000smo}
 	Ginny Mak.
