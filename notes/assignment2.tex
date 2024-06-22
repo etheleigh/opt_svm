@@ -56,9 +56,148 @@
 	\maketitle
 	\thispagestyle{fancy}
 	
-	
+	\lstset{
+		language=Python,
+		basicstyle=\ttfamily,
+		keywordstyle=\color{blue},
+		commentstyle=\color{green},
+		stringstyle=\color{red},
+%%		numbers=left,
+%%		# numberstyle=\tiny\color{gray},
+		stepnumber=1,
+		numbersep=5pt,
+		showspaces=false,
+		showstringspaces=false,
+		frame=single,
+		breaklines=true,
+		tabsize=4
+	}
 
-\section*{Theoritical Background}
+
+
+
+\section{Introduction}
+\label{sec:intro}
+The purpose of this project is to implement John Platt’s Sequential Minimal Optimization Algorithm (SMO) to train a Support Vector Machine (SVM) for binary classification. Support Vector Machines are supervised learning models used for classification and regression. Their basic principle involves finding the hyperplane that best separates data points of different classes by maximizing the margin between them. This is achieved by solving an optimization problem to identify the support vectors, which are the data points closest to the hyperplane.
+
+The fundamental principle of SMO is that it tries to solve the dual rather than the primal optimization problem. In this project, we will implement a basic version of the SMO algorithm to train an SVM binary classifier using the methodology from Platt's original paper \cite{platt1998sequential}. We will explain each step of the process, providing the analytical background along with code snippets.
+
+\section{Problem Formulation}
+\label{sec:problem}
+
+Given a dataset with \( m \) training examples and \( n \) features, where the \( i \)-th example is represented as \( (x^{(i)}, y^{(i)}) \) with \( y^{(i)} \in \{-1, +1\} \) as the label, we aim to address the linear separation problem, potentially involving outliers. The primal problem involves finding a vector \( \mathbf{w} = (w_1, w_2, \ldots, w_n) \) and a scalar \( b \) under the following constraints:
+
+\[
+\begin{aligned}
+	& \min \quad \frac{1}{2} ||\mathbf{w}||^2 + C \sum_{i=1}^{m} s_i \\
+	& \text{s.t.} \quad y^{(i)} (\mathbf{w}^T x^{(i)} + b) \geq 1 - s_i, \quad i = 1, \ldots, m \\
+	& \quad \quad \quad s_i \geq 0, \quad i = 1, \ldots, m
+\end{aligned}
+\]
+
+Here, \( C \) is the regularization parameter that penalizes the outliers. We allow training samples to have a margin less than 1 and we pay the cost of \( C s_i\). The parameter controls the trade-off between maximizing the margin and minimizing the margin violations, balancing a wider margin with a smaller number of margin failures.
+
+Using Lagrange duality we can derive the dual problem, corresponding to the primal one, which is formulated as follows:
+
+\[
+\begin{aligned}
+	& \max_{\alpha} \quad W(\alpha) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y^{(i)} y^{(j)} \langle x^{(i)}, x^{(j)} \rangle \\
+	& \text{s.t.} \quad \sum_{i=1}^{m} \alpha_i y^{(i)} = 0 \\
+	& \quad \quad \quad 0 \leq \alpha_i \leq C, \quad i = 1, \ldots, m
+\end{aligned}
+\]
+
+We note that the slack variables \(s_i\) do not appear in the dual formulation.
+The optimization problem is now converted into a dual quadratic problem, where the objective function is solely dependent on a set of Lagrange multipliers \(\alpha_i\), under the box constraint \(0 \leq \alpha_i \leq C\) and one linear equality constraint \(\sum_{i=1}^{m} \alpha_i y^{(i)} = 0\). 
+
+
+The Karush-Kuhn-Tucker (KKT) conditions for the dual problem are for all \( i \):
+\[ 
+\alpha_i = 0 \iff y_i u_i \geq 1,
+\]
+\[ 
+0 < \alpha_i < C \iff y_i u_i = 1,
+\]
+\[ 
+\alpha_i = C \iff y_i u_i \leq 1.
+\]
+where \( u_i \) is the output of the SVM for the \( i \)-th training example.
+
+The KKT conditions reveal crucial insights for SVM training:
+Support vectors are points where \( 0 < \alpha_i < C \), situated on the margin's edge. These vectors play a critical role in defining the decision boundary.
+When \( \alpha_i = 0 \), the point lies outside the margin and has no impact on the prediction, serving as non-support.
+Points with \( \alpha_i = C \) are inside the margin and may or may not be classified correctly, influencing the SVM's decision boundary.
+
+We anticipate that only a few points will be support vectors (non-bound points), significantly reducing the amount of calculations required."
+
+There is a one-to-one relationship between each Lagrange multiplier \( \alpha_i \) and each training example. Once the Lagrange multipliers are determined, the normal vector \( \mathbf{w} \) can be derived from them:
+\[ 
+\mathbf{w} = \sum_{i=1}^{N} y_i \alpha_i \mathbf{x}_i 
+\].
+
+\section{SMO Algorithm}
+\label{sec:smo}
+\subsection{Algorithm Description}
+\begin{itemize}
+	\item Overview of the SMO algorithm.
+	\item Key decisions in the implementation: variable selection, initial solution, termination criteria.
+\end{itemize}
+
+\subsection{Implementation Details}
+\begin{itemize}
+	\item Pseudocode of the implemented SMO algorithm.
+	\item Discussion on hardwiring the constant \(C\).
+\end{itemize}
+
+\section{Experimental Setup}
+\label{sec:experiments}
+\begin{itemize}
+	\item Description of the dataset used (gisette dataset).
+	\item Preprocessing steps and train-test split (using 4500-5000 points for training).
+\end{itemize}
+
+\section{Results}
+\label{sec:results}
+\begin{itemize}
+	\item Presentation of the results obtained from the basic implementation.
+	\item Evaluation metrics used for assessing the performance.
+\end{itemize}
+
+\section{Optimization and Fine-Tuning}
+\label{sec:optimization}
+\begin{itemize}
+	\item Strategies for optimizing the choice of the constant \(C\).
+	\item Any other optimizations or improvements made to the algorithm.
+	\item Comparative results before and after optimization.
+\end{itemize}
+
+\section{Discussion}
+\label{sec:discussion}
+\begin{itemize}
+	\item Analysis of the results and their implications.
+	\item Challenges faced during implementation and how they were addressed.
+	\item Limitations of the current implementation and potential future work.
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\begin{itemize}
+	\item Summary of the work done.
+	\item Key findings and their significance.
+	\item Final thoughts and potential directions for future research.
+\end{itemize}
+
+\appendix
+\section{Appendix}
+\begin{itemize}
+	\item Additional tables, figures, or code snippets.
+	\item Detailed mathematical derivations if necessary.
+\end{itemize}
+
+
+
+
+\section*{Theoretical Background}
 
 We have the following non linear program:
 
@@ -90,6 +229,22 @@ We have the following non linear program:
 	\end{algorithmic}
 \end{algorithm}
 
+\begin{lstlisting}
+	# Define parameter s
+	s = y1 * y2
+	
+	# Compute L, H via equations (13) and (14) from Platt
+	if y1 != y2:
+	L = max(0, a2 - a1)
+	H = min(self.C, self.C + a2 - a1)
+	else:
+	L = max(0, a2 + a1 - self.C)
+	H = min(self.C, a2 + a1)
+	
+	if L == H:
+	return 0
+\end{lstlisting}
+
 \section*{Problem 4}
 
 \subsection{Updating the Error Cache}
@@ -120,6 +275,7 @@ Substituting equation (3.37) into equation (3.36), we have
 	+ y_2 \left( \alpha_2^{\text{new}} - \alpha_2^{\text{old}} \right) k_{2k} - (b^{\text{new}} - b^{\text{old}}) \tag{3.39}
 \end{equation}
 
+
  
 \begin{thebibliography}{1}
 	
@@ -135,5 +291,7 @@ Substituting equation (3.37) into equation (3.36), we have
 	\newblock Master's thesis, McGill University, School of Computer Science, Montreal, Canada, April 2000.
 	
 \end{thebibliography}
+
+
 
 \end{document}
