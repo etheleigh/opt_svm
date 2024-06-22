@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.19)  22 JUN 2024 12:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.19)  22 JUN 2024 15:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1062,98 +1062,113 @@ LaTeX Font Info:    Font shape `T1/mak/m/n' will be
  [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 ]
+LaTeX Font Info:    Font shape `T1/mak/m/it' will be
+(Font)              scaled to size 8.99994pt on input line 144.
 LaTeX Font Info:    Font shape `T1/mak/b/n' will be
-(Font)              scaled to size 10.79993pt on input line 139.
-LaTeX Font Info:    Trying to load font information for TS1+mak on input line 1
-41.
-LaTeX Font Info:    No file TS1mak.fd. on input line 141.
+(Font)              scaled to size 10.79993pt on input line 146.
+LaTeX Font Info:    Font shape `T1/mak/b/n' will be
+(Font)              scaled to size 8.99994pt on input line 148.
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 15
+1.
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1pcr.fd
+File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
+) [2]
+LaTeX Font Info:    Font shape `T1/mak/b/it' will be
+(Font)              scaled to size 8.99994pt on input line 194.
+ [3] [4]
+LaTeX Font Info:    Trying to load font information for TS1+mak on input line 3
+82.
+LaTeX Font Info:    No file TS1mak.fd. on input line 382.
 
 
 LaTeX Font Warning: Font shape `TS1/mak/m/n' undefined
 (Font)              using `TS1/cmr/m/n' instead
-(Font)              for symbol `textbullet' on input line 141.
+(Font)              for symbol `textbullet' on input line 382.
 
-[2]
+[5]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 212.
-LaTeX Font Info:    Font shape `T1/mak/b/n' will be
-(Font)              scaled to size 8.99994pt on input line 212.
+put line 440.
 LaTeX Font Info:    Font shape `T1/mak/m/n' will be
-(Font)              scaled to size 7.19995pt on input line 214.
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 23
-1.
- (/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1pcr.fd
-File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
-) [3pdfTeX warning (ext4): destination with the same identifier (name{equation.
-A.2}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.275 \end{equation}
-                    pdfTeX warning (ext4): destination with the same identifier
- (name{equation.A.2}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.275 \end{equation}
-                    ]
-Underfull \hbox (badness 10000) in paragraph at lines 282--286
+(Font)              scaled to size 7.19995pt on input line 442.
+ [6]
+Underfull \hbox (badness 10000) in paragraph at lines 510--514
 []\T1/mak/m/n/10 John Platt.  Se-quen-tial Min-i-mal Op-ti-miza-tion: A Fast Al
 -go-rithm for Train-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 282--286
+Underfull \hbox (badness 10000) in paragraph at lines 510--514
 \T1/mak/m/n/10 ing Sup-port Vec-tor Ma-chines.  Tech-ni-cal Re-port MSR-TR-98-1
 4, Mi-crosoft,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 282--286
+Underfull \hbox (badness 10000) in paragraph at lines 510--514
 \T1/mak/m/n/10 April 1998.  [][]$\T1/pcr/m/n/10 https : / / www . microsoft . c
 om / en-[]us / research / publication /
  []
 
 
-Overfull \hbox (56.16302pt too wide) in paragraph at lines 282--286
+Overfull \hbox (56.16302pt too wide) in paragraph at lines 510--514
 \T1/pcr/m/n/10 sequential-[]minimal-[]optimization-[]a-[]fast-[]algorithm-[]for
 -[]training-[]support-[]vector-[]machines/$[][]\T1/mak/m/n/10 . 
  []
 
-[4pdfTeX warning (ext4): destination with the same identifier (name{equation.A.
+[7pdfTeX warning (ext4): destination with the same identifier (name{equation.A.
 2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.296 \end{document}
+l.524 \end{document}
+                    pdfTeX warning (ext4): destination with the same identifier
+ (name{equation.A.2}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.524 \end{document}
+                    pdfTeX warning (ext4): destination with the same identifier
+ (name{equation.A.2}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.524 \end{document}
                     ] (./assignment2.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-Package rerunfilecheck Info: File `assignment2.out' has not changed.
-(rerunfilecheck)             Checksum: 033DE77E48310D6D0619C33D8277DA89;1553.
+
+Package rerunfilecheck Warning: File `assignment2.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `assignment2.out':
+(rerunfilecheck)             Before: 74E09C293ACA900B7F6187D169678052;1700
+(rerunfilecheck)             After:  844FD16C6D2FAA6DB906012C535B5067;1884.
  ) 
 Here is how much of TeX's memory you used:
- 37683 strings out of 480171
- 849272 string characters out of 5894489
- 1484234 words of memory out of 5000000
- 54943 multiletter control sequences out of 15000+600000
- 490378 words of font info for 95 fonts, out of 8000000 for 9000
+ 37868 strings out of 480171
+ 851619 string characters out of 5894489
+ 1674237 words of memory out of 5000000
+ 55005 multiletter control sequences out of 15000+600000
+ 492052 words of font info for 99 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
- 99i,12n,103p,744b,1241s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc} </home/vassilis/.
-texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk>{/usr/share/te
-xlive/texmf-dist/fonts/enc/dvips/kerkis/kerkisec.enc}</usr/share/texlive/texmf-
+ 99i,12n,103p,744b,1876s stack positions out of 5000i,500n,10000p,200000b,80000s
+ </home/vassilis/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.
+600pk>{/usr/share/texlive/texmf-dist/fonts/enc/dvips/kerkis/kerkisec.enc}{/usr/
+share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-
 dist/fonts/type1/public/kerkis/Kerkis-Bold.pfb></usr/share/texlive/texmf-dist/f
-onts/type1/public/kerkis/Kerkis.pfb></usr/share/texlive/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.
-pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></us
-r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/shar
-e/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on assignment2.pdf (4 pages, 131863 bytes).
+onts/type1/public/kerkis/Kerkis-BoldItalic.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/public/kerkis/Kerkis-Italic.pfb></usr/share/texlive/texmf-dist/fonts
+/type1/public/kerkis/Kerkis.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmm
+i7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/sh
+are/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/te
+xlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb>
+Output written on assignment2.pdf (7 pages, 167611 bytes).
 PDF statistics:
- 174 PDF objects out of 1000 (max. 8388607)
- 145 compressed objects within 2 object streams
- 43 named destinations out of 1000 (max. 500000)
- 109 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 341 PDF objects out of 1000 (max. 8388607)
+ 303 compressed objects within 4 object streams
+ 162 named destinations out of 1000 (max. 500000)
+ 117 words of extra memory for PDF output out of 10000 (max. 10000000)
 

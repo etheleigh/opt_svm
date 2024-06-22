@@ -128,7 +128,7 @@ Support vectors are points where \( 0 < \alpha_i < C \), situated on the margin'
 When \( \alpha_i = 0 \), the point lies outside the margin and has no impact on the prediction, serving as non-support.
 Points with \( \alpha_i = C \) are inside the margin and may or may not be classified correctly, influencing the SVM's decision boundary.
 
-We anticipate that only a few points will be support vectors (non-bound points), significantly reducing the amount of calculations required."
+We anticipate that only a few points will be support vectors (non-bound points), significantly reducing the amount of calculations required.
 
 There is a one-to-one relationship between each Lagrange multiplier \( \alpha_i \) and each training example. Once the Lagrange multipliers are determined, the normal vector \( \mathbf{w} \) can be derived from them:
 \[ 
@@ -137,17 +137,252 @@ There is a one-to-one relationship between each Lagrange multiplier \( \alpha_i 
 
 \section{SMO Algorithm}
 \label{sec:smo}
-\subsection{Algorithm Description}
-\begin{itemize}
-	\item Overview of the SMO algorithm.
-	\item Key decisions in the implementation: variable selection, initial solution, termination criteria.
-\end{itemize}
 
-\subsection{Implementation Details}
-\begin{itemize}
-	\item Pseudocode of the implemented SMO algorithm.
-	\item Discussion on hardwiring the constant \(C\).
-\end{itemize}
+The Sequential Minimal Optimization (SMO) algorithm tackles the SVM training process by focusing on solving the smallest possible optimization problems step by step. Because of the linear constraint, in each step we must always select a pair of Lagrangian multipliers \(\alpha_i\) and jointly optimize them. What makes SMO efficient is its ability to solve these pairs analytically, avoiding complex numerical optimizations. 
+The algorithm is built on two main parts: a method for solving these pairs analytically and a heuristic rule for deciding which pairs to optimize next. 
+
+In our implementation we have followed the exact steps from Platt's paper. We choose to follow an object oriented approach, creating a class named SVM\_classifier that includes the methods \textit{take\_step}, or The pair optimization step, \textit{examine\_example}, that uses heuristics to identify an eligible pair, and \textit{fit} method that corresponds to the main training loop. The theoretical background and the implementation of those methods will be explained in detail below.
+
+\subsection{SMO implementation Details}
+
+\subsubsection{Initial setup}
+Firstly, we initialize the classifier class setting the default parameters, required by the algorithm.
+
+\begin{lstlisting}
+class SVM_classifier:
+	def __init__(self, X, y, kernel:str ='linear', 
+				 C:float =1, epsilon:float =1e-8,
+				 tol:float = 0.001, max_iter:int= 500):
+		self.X = X
+		self.y = y
+		self.kernel = kernel
+		self.kernel_func = self.select_kernel(self.kernel)
+		self.C = C
+		self.epsilon = epsilon # error margin 
+		self.tol = tol # tolerance for KKT
+		self.max_iter = max_iter
+		self.m, self.n = np.shape(self.X) 
+		self.alphas = np.zeros(self.m)
+		self.Error_cache = np.zeros(self.m)
+
+		self.w = np.zeros(self.n)
+		self.b = 0
+\end{lstlisting}
+
+X and y denote the training samples and the corresponding labels, and C is the regularization parameter. We also set a small error variable $\epsilon$, as well as a tolerance within the KKT conditions should be satisfied. 
+In the `alphas` array we store the Lagrange multipliers. Here are initialized with zeros. The output of the training process will be the vector w and the threshold b.
+
+A kernel function that measures the similarity or distance between the input and the training vectors is also used. The default is \textit{linear}, which suffices for this project, but we could use also others. Apart from the linear we have also implement an RBF Gaussian kernel:
+\newpage
+\begin{lstlisting}
+def linear_kernel(self, x1: np.ndarray, x2: np.ndarray) -> np.ndarray:
+		return x1 @ x2.T
+
+def rbf_kernel(self, x1, x2):
+
+	gamma = 1
+	if np.ndim(x1) == 1: x1 = x1[np.newaxis, :]
+	if np.ndim(x2) == 1: x2 = x2[np.newaxis, :]
+
+	dist_squared = np.linalg.norm(x1[:, :, np.newaxis] - \
+				   x2.T[np.newaxis, :, :], axis=1) ** 2
+	dist_squared = np.squeeze(dist_squared)
+
+	return np.exp(-gamma * dist_squared)
+\end{lstlisting}
+
+\subsubsection{\textit{take\_step} method}
+
+The method takes as input two points $i_1, i_2$ and takes an optimization step. If that is successful the corresponding parameter arrays are updated else nothing happens and we try another pair.
+
+In order to solve for the two Lagrange multipliers, SMO first computes the constraints on these multipliers and then solves for the constrained minimum.  The inequality constraints cause the Lagrange multipliers to lie within a \([0,C]\) box, while the linear equality constraint causes the
+Lagrange multipliers to lie on a diagonal line.
+
+The latter constraint explains why two is the minimum number of Lagrange multipliers that can be optimized together; if SMO optimized only one multiplier, it could not fulfill the linear equality constraint at every step.
+The algorithm first computes the second Lagrange multiplier \(\alpha_2\) and computes the ends of the diagonal line segment in terms of it. The ends of the diagonal line segment can be expressed quite simply, as shown below:
+\[
+L = \left\{
+\begin{array}{ll}
+	\max(0, \alpha_2 - \alpha_1), & \text{if } y_1 \neq y_2 \\
+	\max(0, \alpha_2 + \alpha_1 - C), & \text{if } y_1 = y_2
+\end{array}
+\right.
+\quad
+H = \left\{
+\begin{array}{ll}
+	\min(C, C + \alpha_2 - \alpha_1), & \text{if } y_1 \neq y_2 \\
+	\min(C, \alpha_2 + \alpha_1), & \text{if } y_1 = y_2
+\end{array}
+\right.
+\]
+
+Those serve as bounds for \(\alpha_2\). Within the \textit{take\_step} method this is implemented as follows:
+
+\begin{lstlisting}
+if y1!=y2:
+	L = max(0,a2-a1)
+	H = min(self.C,self.C+a2-a1)
+else:
+	L = max(0,a2+a1-self.C)
+	H = min(self.C,a2+a1)
+	
+if L==H:
+	return 0
+\end{lstlisting}
+	
+If both ends are the same, we exit the method and continue with a different pair.
+
+The second derivative of the objective function along the diagonal line is given by:
+\[
+\eta = K(x_1, x_1) + K(x_2, x_2) - 2 K(x_1, x_2).
+\]
+Under normal circumstances, where the objective function is \textbf{positive definite}, there exists a minimum along the direction of the linear equality constraint, and \( \eta > 0 \). In such cases, SMO computes the minimum along this constraint direction as:
+\[
+\alpha_{2,\text{new}} = \alpha_2 + \frac{y_2 (E_1 - E_2)}{\eta},
+\]
+where \( E_i = u_i - y_i \) represents the error on the \( i \)-th training example and we save it in an \textit{Error\_cache} array.
+The constrained minimum is then determined by clipping the unconstrained minimum to the boundaries of the line segment:
+\[
+\alpha_{2,\text{new,clipped}} =
+\begin{cases}
+	H, & \text{if } \alpha_{2,\text{new}} \geq H \\
+	\alpha_{2,\text{new}}, & \text{if } L < \alpha_{2,\text{new}} < H \\
+	L, & \text{if } \alpha_{2,\text{new}} \leq L.
+\end{cases}
+\]
+
+
+The corresponding code snippet is as follows:
+
+\begin{lstlisting}
+k11 = self.kernel_func(x1,x1)
+k22 = self.kernel_func(x2,x2)
+k12 = self.kernel_func(x1,x2)
+	
+# Compute the second derivative along diagonal
+eta = k11 + k22 - 2.0*k12
+	
+if eta > 0:
+
+	a2_new = a2 + y2*(E1-E2)/eta	
+	if a2_new>=H:
+		a2_new = H
+	if a2_new<=L:
+		a2_new = L
+\end{lstlisting}
+
+Under unusual circumstances, \( \eta \) will not be positive. In such cases, the objective function \( \Psi \) should be evaluated at each end of the line segment by the following equations:
+\[
+\begin{aligned}
+	f_1 &= y_1 (E_1 + b) - \alpha_1 K(x_1, x_1) - s \alpha_2 K(x_1, x_2), \\
+	f_2 &= y_2 (E_2 + b) - s \alpha_1 K(x_1, x_2) - \alpha_2 K(x_2, x_2), \\
+	L_1 &= \alpha_1 + s(\alpha_2 - L), \\
+	H_1 &= \alpha_1 + s(\alpha_2 - H),\\
+	\Psi_L &= L1 f_1 + L f_2 + \frac{1}{2} L^2 K(x_1, x_1) + \frac{1}{2} L^2 K(x_2, x_2) + s L L_1 K(x_1, x_2), \\
+	\Psi_H &= H1 f_1 + H f_2 + \frac{1}{2} H^2 K(x_1, x_1) + \frac{1}{2} H^2 K(x_2, x_2) + s H H_1 K(x_1, x_2).
+\end{aligned}
+\]
+SMO will move the Lagrange multipliers to the endpoint that yields the lowest value of the objective function \( \Psi \). If the objective function is equal at both ends (within a small \( \epsilon \) for round-off error) the joint minimization cannot make further progress, and the method is exited. Below is the relevant code:
+
+\begin{lstlisting}
+f1 = y1*(E1 + self.b) - a1*k11 - s*a2*k12
+f2 = y2*(E2 + self.b) - s*a1*k12 - a2*k22
+L1 = a1 + s*(a2 - L)
+H1 = a1 + s*(a2 - H)
+psi_L = L1*f1 + L*f2 + 0.5*L1*L1*k11 + 0.5*L*L*k22 + s*L*L1*k12
+psi_H = H1*f1 + H*f2 + 0.5*H1*H1*k11 + 0.5*H*H*k22 + s*H*H1*k12
+	
+if psi_L < (psi_H - self.epsilon):
+	a2_new = L
+elif psi_L > (psi_H + self.epsilon):
+	a2_new = H
+else:
+	a2_new = a2
+
+if np.abs(a2_new - a2) < (self.epsilon * (a2_new + a2 + self.epsilon)):
+	return 0
+\end{lstlisting}
+
+Now we can calculate the The value of \( \alpha_1 \) based on the new clipped \( \alpha_2 \) using the following equation (let \( s = y_1 y_2 \)):
+
+\[
+\alpha_{1,\text{new}} = \alpha_1 + s (\alpha_2 - \alpha_{2,\text{new,clipped}}).
+\]
+
+The threshold \( b \) is recalculated after each optimization step to satisfy the KKT conditions for both optimized examples. \( b1 \) ensures the SVM outputs \( y1 \) when the input is \( x1 \):
+\[
+b_1 = E_1 + y1 (\alpha_{1,\text{new}} - \alpha_1) K(x_1, x_1) + y2 (\alpha_{2,\text{new,clipped}} - \alpha_2) K(x_1, x_2) + b.
+\]
+Similarly, \( b_2 \) ensures the SVM outputs \( y_2 \) when the input is \( x_2 \):
+\[
+b_2 = E_2 + y_1 (\alpha_{1,\text{new}} - \alpha_1) K(x_1, x_2) + y_2 (\alpha_{2,\text{new,clipped}} - \alpha_2) K(x_2, x_2) + b.
+\]
+When both \( b_1 \) and \( b_2 \) are valid and equal, or when both new Lagrange multipliers are at bounds (and \( L \neq H \)), any threshold between \( b_1 \) and \( b_2 \) satisfies the KKT conditions. SMO selects the average between \( b_1 \) and \( b_2 \).
+
+For linear kernel, we can easily update and store the the weight vector \( w \) using the following:
+\[
+w_{\text{new}} = w + y_1 (\alpha_{1,\text{new}} - \alpha_1) x_1 + y_2 (\alpha_{2,\text{new,clipped}} - \alpha_2) x_2.
+\]
+
+For all non boundary elements we can also update efficiently the error cache with the help of some algebra and it yields:
+
+\[
+E^{new}_i = E^{old}_i + y_1 (\alpha^{new}_1 -
+\alpha^{old}_1) K_{1i} + y_2 (\alpha^{new}_2 - \alpha^{old}_2) K_{2i} +
+(b_{new} - b)\]
+
+The method exits successful and all the relevant arrays are updated with their new values:
+
+\begin{lstlisting}
+# Update threshold b
+b1 = self.b + E1 + y1*(a1_new - a1)*k11 + y2*(a2_new - a2)*k12
+b2 = self.b + E2 + y1*(a1_new - a1)*k12 + y2*(a2_new - a2)*k22
+	
+if 0 < a1_new < self.C:
+	b_new = b1
+elif 0 < a2_new < self.C:
+	b_new = b2
+else:
+	b_new = 0.5*(b1 + b2)
+	
+# Update weight's vector if Linear kernel
+if self.kernel == 'linear':
+	self.w = self.w + y1*(a1_new - a1)*x1 + y2*(a2_new - a2)*x2
+	
+# Update Error_cache using alphas (see reference)
+	
+# if a1 & a2 are not at bounds, the error will be 0
+self.Error_cache[i1] = 0
+self.Error_cache[i2] = 0
+	
+# Update error for non boundary elements
+inner_indices = [idx for idx, a in enumerate(self.alphas) if 0 < a < self.C]
+for i in inner_indices:
+	self.Error_cache[i] += \
+	y1*(a1_new - a1)*self.kernel_func(x1, self.X[i,:]) \
+	+ y2*(a2_new - a2)*self.kernel_func(x2, self.X[i,:]) \
+	+ (self.b - b_new)
+	
+# Update alphas
+	self.alphas[i1] = a1_new
+	self.alphas[i2] = a2_new
+	
+# Update b
+	self.b = b_new
+	
+return 1
+	
+\end{lstlisting}
+
+\subsubsection{\textit{examine\_example} method}
+
+The method starts by checking if an element violates KKT conditions (within a selected tolerance user-defined by parameter \textit{tol}). After that the method uses an two-level hierarchy of heuristics to select candidate pairs.
+
+The fist case applies if there is only a singe non-bound elemente 
+
+The SMO algorithm uses two heuristics to choose Lagrange multipliers: one for the first and one for the second. The outer loop first iterates through the entire training set to find examples violating the KKT conditions. These examples are then optimized. After one full pass, the outer loop focuses on non-bound examples (where Lagrange multipliers are neither 0 nor \( C \)), checking and optimizing those that violate the KKT conditions. This process repeats, alternating between full passes over the entire training set and multiple passes over the non-bound examples, until all examples satisfy the KKT conditions within a small tolerance \( tol \). The algorithm terminates when the entire training set meets the KKT conditions.
+
+
 
 \section{Experimental Setup}
 \label{sec:experiments}
