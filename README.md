@@ -12,13 +12,16 @@ Install the required Python packages using pip and the provided requirements.txt
 ```bash
 pip install -r requirements.txt
 ```
+
 ## Dataset
 
 The Gisette dataset files (gisette_scale.bz2 and gisette_scale.t.bz2) are placed in the `data` directory within the project folder. These files contain pre-scaled and preprocessed data ready for training and testing.
 
 ## Run the code
+In order to run the code we must move at the src directory.
 ```bash
-python main.py
+cd src/
+python src/main.py
 ```
 ### 1. Hyperparameter Tuning (Optional)
 
@@ -51,6 +54,7 @@ After training, the script will evaluate the classifier on the test set and prin
 ├── README.md
 ├── requirements.txt
 ├── src
+    ├── __init__.py
     ├── main.py
     ├── SMO.py
     └── utils.py

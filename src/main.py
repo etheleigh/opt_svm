@@ -1,4 +1,4 @@
-from src.utils import read_gisette_data, tune_hyperparameter_C
+from utils import read_gisette_data, tune_hyperparameter_C
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import os
 from SMO import SVM_classifier
@@ -7,8 +7,11 @@ def main():
 
     # Read gisette dataset
     MAX_LINES = 4500
-    file_path_train = os.path.join("..", "data", "gisette_scale.bz2")
-    file_path_test = os.path.join("..", "data", "gisette_scale.t.bz2")
+
+    # File paths relative to the base directory
+    file_path_train = os.path.join('..', 'data', 'gisette_scale.bz2')
+    file_path_test = os.path.join('..', 'data', 'gisette_scale.t.bz2')
+
     y_train, X_train = read_gisette_data(file_path_train, max_lines=MAX_LINES)
     y_test, X_test = read_gisette_data(file_path_test, max_lines=MAX_LINES)
 

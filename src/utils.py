@@ -4,7 +4,7 @@ from typing import Tuple, Optional
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import KFold
 
-from src.SMO import SVM_classifier
+from SMO import SVM_classifier
 
 
 def read_gisette_data(file_path: str, max_lines: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
